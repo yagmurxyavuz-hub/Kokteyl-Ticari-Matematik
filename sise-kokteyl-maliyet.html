@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+  <title>Şişe & Kokteyl Maliyet Hesap</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#4f46e5">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    input, select, button { margin: 5px; padding: 10px; font-size: 16px; }
+    .card { border: 1px solid #ddd; padding: 15px; border-radius: 10px; margin-bottom: 15px; }
+    h2 { color: #4f46e5; }
+  </style>
+</head>
+<body>
+  <h2>Şişe & Kokteyl Maliyet Hesap</h2>
+  <div class="card">
+    <label>Şişe Fiyatı (₺):</label><br>
+    <input type="number" id="siseFiyat"><br>
+    <label>İskonto:</label><br>
+    <input type="number" id="iskonto">
+    <select id="iskontoTipi"><option value="tl">₺</option><option value="yuzde">%</option></select><br>
+    <label>Şişe CL:</label><br>
+    <input type="number" id="siseCl"><br>
+    <label>Adet:</label><br>
+    <input type="number" id="adet" value="1"><br>
+  </div>
+  <div class="card">
+    <label>Kokteylde Kullanılan Alkol CL:</label><br>
+    <input type="number" id="kokteylCl"><br>
+    <label>Diğer Tutarlar (₺):</label><br>
+    <input type="number" id="diger"><br>
+    <label>Kokteyl Satış Fiyatı (₺):</label><br>
+    <input type="number" id="satis"><br>
+  </div>
+  <button onclick="hesapla()">Hesapla</button>
+  <div id="sonuc" class="card"></div>
+<script>
+function hesapla(){
+  let f = parseFloat(document.getElementById("siseFiyat").value)||0;
+  let i = parseFloat(document.getElementById("iskonto").value)||0;
+  let tip = document.getElementById("iskontoTipi").value;
+  let cl = parseFloat(document.getElementById("siseCl").value)||0;
+  let adet = parseInt(document.getElementById("adet").value)||1;
+  let kokCl = parseFloat(document.getElementById("kokteylCl").value)||0;
+  let diger = parseFloat(document.getElementById("diger").value)||0;
+  let satis = parseFloat(document.getElementById("satis").value)||0;
+
+  let net = (tip==="tl") ? f-i : f - (f*i/100);
+  let toplam = net*adet;
+  let tlCl = cl>0 ? net/cl : 0;
+  let alkolMaliyet = kokCl*tlCl;
+  let kokteylToplam = alkolMaliyet+diger;
+  let oran = satis>0 ? ((kokteylToplam/satis)*100).toFixed(1) : "-";
+  document.getElementById("sonuc").innerHTML = `
+    <b>Net Şişe Fiyatı:</b> ₺${net.toFixed(2)}<br>
+    <b>Toplam (${adet} adet):</b> ₺${toplam.toFixed(2)}<br>
+    <b>₺/CL:</b> ${tlCl.toFixed(2)} ₺<br>
+    <b>Kokteyl Alkol Maliyeti:</b> ₺${alkolMaliyet.toFixed(2)}<br>
+    <b>Kokteyl Toplam Maliyet:</b> ₺${kokteylToplam.toFixed(2)}<br>
+    <b>Maliyet / Satış Oranı:</b> ${oran}%
+  `;
+}
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("sw.js");
+}
+</script>
+</body>
+</html>
