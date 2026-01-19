@@ -6,12 +6,12 @@
 <title>Şişe & Kokteyl Maliyet</title>
 
 <style>
-:root{--radius:14px}
 body{font-family:system-ui;background:#f6f7fb;margin:0;display:flex;justify-content:center;align-items:center;min-height:100vh}
 .card{background:#fff;width:min(650px,95%);padding:16px;border-radius:18px;box-shadow:0 10px 30px rgba(0,0,0,.08)}
 label{font-size:12px;color:#555;margin-bottom:6px;display:block}
 .input{border:1px solid #e3e6ee;border-radius:12px;padding:10px}
 input{border:0;outline:0;width:100%;font-size:15px}
+input[readonly]{background:#f1f5f9}
 .grid{display:grid;gap:12px}
 .result{margin-top:14px}
 .tile{background:#0f172a;color:#fff;padding:12px;border-radius:12px;margin-bottom:8px}
@@ -19,7 +19,7 @@ input{border:0;outline:0;width:100%;font-size:15px}
 button{border:0;border-radius:12px;padding:12px;font-size:15px;cursor:pointer}
 .primary{background:#4f46e5;color:#fff}
 
-/* DROPDOWN */
+/* dropdown */
 .dropdown{position:relative}
 .dropdown-list{
   position:absolute;top:100%;left:0;right:0;
@@ -38,7 +38,6 @@ button{border:0;border-radius:12px;padding:12px;font-size:15px;cursor:pointer}
 
 <div class="grid">
 
-<!-- ÜRÜN SEÇ -->
 <div>
 <label>Ürün Seç</label>
 <div class="dropdown">
@@ -55,13 +54,13 @@ button{border:0;border-radius:12px;padding:12px;font-size:15px;cursor:pointer}
 </div>
 
 <div>
-<label>İskonto (₺)</label>
+<label>İskonto (%)</label>
 <div class="input"><input id="discount" type="number" value="0"></div>
 </div>
 
 <div>
-<label>Şişe CL</label>
-<div class="input"><input id="bottleCL" type="number"></div>
+<label>Şişe CL (dosyadan)</label>
+<div class="input"><input id="bottleCL" readonly></div>
 </div>
 
 <hr>
@@ -99,6 +98,7 @@ const urunAra=document.getElementById("urunAra");
 const urunListe=document.getElementById("urunListe");
 const priceEl=document.getElementById("price");
 const bottleCLEl=document.getElementById("bottleCL");
+
 let urunler=[];
 
 /* CSV OKU */
@@ -145,17 +145,17 @@ document.addEventListener("click",e=>{
 /* HESAP */
 function calc(){
   const price=+priceEl.value;
-  const discount=+document.getElementById("discount").value;
+  const discountPct=+document.getElementById("discount").value;
   const bottleCL=+bottleCLEl.value;
   const cocktailCL=+document.getElementById("cocktailCL").value;
   const extra=+document.getElementById("extra").value;
   const sale=+document.getElementById("sale").value;
 
-  const net=price-discount;
-  const perCL=net/bottleCL;
-  const alcoholCost=perCL*cocktailCL;
-  const total=alcoholCost+extra;
-  const ratio=sale?((total/sale)*100):0;
+  const net=price - (price * discountPct / 100);
+  const perCL=net / bottleCL;
+  const alcoholCost=perCL * cocktailCL;
+  const total=alcoholCost + extra;
+  const ratio=sale ? (total/sale)*100 : 0;
 
   document.getElementById("netBottle").textContent=net?`₺ ${net.toFixed(2)}`:"—";
   document.getElementById("perCL").textContent=perCL?`₺ ${perCL.toFixed(2)}`:"—";
