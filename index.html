@@ -3,15 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Şişe & Kokteyl Maliyet Hesap</title>
+<title>Şişe & Kokteyl Maliyet</title>
 
 <style>
 :root{--radius:14px}
 body{font-family:system-ui;background:#f6f7fb;margin:0;display:flex;justify-content:center;align-items:center;min-height:100vh}
-.card{background:#fff;width:min(600px,95%);padding:16px;border-radius:18px;box-shadow:0 10px 30px rgba(0,0,0,.08)}
+.card{background:#fff;width:min(650px,95%);padding:16px;border-radius:18px;box-shadow:0 10px 30px rgba(0,0,0,.08)}
 label{font-size:12px;color:#555;margin-bottom:6px;display:block}
 .input{border:1px solid #e3e6ee;border-radius:12px;padding:10px}
-input{border:0;outline:0;width:100%;font-size:16px}
+input{border:0;outline:0;width:100%;font-size:15px}
 .grid{display:grid;gap:12px}
 .result{margin-top:14px}
 .tile{background:#0f172a;color:#fff;padding:12px;border-radius:12px;margin-bottom:8px}
@@ -22,25 +22,13 @@ button{border:0;border-radius:12px;padding:12px;font-size:15px;cursor:pointer}
 /* DROPDOWN */
 .dropdown{position:relative}
 .dropdown-list{
-  position:absolute;
-  top:100%;
-  left:0;
-  right:0;
-  background:#fff;
-  border:1px solid #e3e6ee;
-  border-radius:12px;
-  max-height:220px;
-  overflow:auto;
-  display:none;
-  z-index:10
+  position:absolute;top:100%;left:0;right:0;
+  background:#fff;border:1px solid #e3e6ee;
+  border-radius:12px;max-height:220px;
+  overflow:auto;display:none;z-index:10
 }
-.dropdown-item{
-  padding:10px;
-  cursor:pointer
-}
-.dropdown-item:hover{
-  background:#eef2ff
-}
+.dropdown-item{padding:10px;cursor:pointer}
+.dropdown-item:hover{background:#eef2ff}
 </style>
 </head>
 
@@ -50,7 +38,7 @@ button{border:0;border-radius:12px;padding:12px;font-size:15px;cursor:pointer}
 
 <div class="grid">
 
-<!-- MODERN ÜRÜN SEÇ -->
+<!-- ÜRÜN SEÇ -->
 <div>
 <label>Ürün Seç</label>
 <div class="dropdown">
@@ -62,33 +50,56 @@ button{border:0;border-radius:12px;padding:12px;font-size:15px;cursor:pointer}
 </div>
 
 <div>
-<label>Şişe Fiyatı</label>
+<label>Şişe Fiyatı (₺)</label>
 <div class="input"><input id="price" type="number"></div>
 </div>
 
 <div>
+<label>İskonto (₺)</label>
+<div class="input"><input id="discount" type="number" value="0"></div>
+</div>
+
+<div>
 <label>Şişe CL</label>
-<div class="input"><input id="cl" type="number"></div>
+<div class="input"><input id="bottleCL" type="number"></div>
+</div>
+
+<hr>
+
+<div>
+<label>Kokteylde Kullanılan Alkol (CL)</label>
+<div class="input"><input id="cocktailCL" type="number"></div>
+</div>
+
+<div>
+<label>Diğer Tutarlar (₺)</label>
+<div class="input"><input id="extra" type="number" value="0"></div>
+</div>
+
+<div>
+<label>Kokteyl Satış Fiyatı (₺)</label>
+<div class="input"><input id="sale" type="number"></div>
 </div>
 
 </div>
 
 <section class="result">
-<div class="tile"><div>Net Şişe Fiyatı</div><div id="netOut">—</div></div>
+<div class="tile"><div>Net Şişe Fiyatı</div><div id="netBottle">—</div></div>
 <div class="tile light"><div>₺ / CL</div><div id="perCL">—</div></div>
+<div class="tile"><div>Kokteyl Alkol Maliyeti</div><div id="alcoholCost">—</div></div>
+<div class="tile light"><div>Toplam Kokteyl Maliyeti</div><div id="totalCost">—</div></div>
+<div class="tile"><div>Maliyet Oranı</div><div id="ratio">—</div></div>
 </section>
 
 <button class="primary" onclick="calc()">Hesapla</button>
-
 </main>
 
 <script>
-const urunAra = document.getElementById("urunAra");
-const urunListe = document.getElementById("urunListe");
-const priceEl = document.getElementById("price");
-const clEl = document.getElementById("cl");
-
-let urunler = [];
+const urunAra=document.getElementById("urunAra");
+const urunListe=document.getElementById("urunListe");
+const priceEl=document.getElementById("price");
+const bottleCLEl=document.getElementById("bottleCL");
+let urunler=[];
 
 /* CSV OKU */
 fetch("urunler.csv")
@@ -102,33 +113,30 @@ fetch("urunler.csv")
   renderList(urunler);
 });
 
-/* LISTE YAZ */
+/* LISTE */
 function renderList(list){
   urunListe.innerHTML="";
   list.forEach(u=>{
-    const div=document.createElement("div");
-    div.className="dropdown-item";
-    div.textContent=u.ad;
-    div.onclick=()=>{
+    const d=document.createElement("div");
+    d.className="dropdown-item";
+    d.textContent=u.ad;
+    d.onclick=()=>{
       urunAra.value=u.ad;
       priceEl.value=u.fiyat;
-      clEl.value=u.cl;
+      bottleCLEl.value=u.cl;
       urunListe.style.display="none";
       calc();
     };
-    urunListe.appendChild(div);
+    urunListe.appendChild(d);
   });
 }
 
 /* ARA */
 urunAra.addEventListener("input",()=>{
   const q=urunAra.value.toLowerCase();
-  const f=urunler.filter(u=>u.ad.toLowerCase().includes(q));
-  renderList(f);
+  renderList(urunler.filter(u=>u.ad.toLowerCase().includes(q)));
   urunListe.style.display="block";
 });
-
-/* ODAK */
 urunAra.addEventListener("focus",()=>urunListe.style.display="block");
 document.addEventListener("click",e=>{
   if(!e.target.closest(".dropdown")) urunListe.style.display="none";
@@ -136,10 +144,24 @@ document.addEventListener("click",e=>{
 
 /* HESAP */
 function calc(){
-  const p=+priceEl.value;
-  const cl=+clEl.value;
-  document.getElementById("netOut").textContent=p?`₺ ${p}`:"—";
-  document.getElementById("perCL").textContent=(p&&cl)?`₺ ${(p/cl).toFixed(2)}`:"—";
+  const price=+priceEl.value;
+  const discount=+document.getElementById("discount").value;
+  const bottleCL=+bottleCLEl.value;
+  const cocktailCL=+document.getElementById("cocktailCL").value;
+  const extra=+document.getElementById("extra").value;
+  const sale=+document.getElementById("sale").value;
+
+  const net=price-discount;
+  const perCL=net/bottleCL;
+  const alcoholCost=perCL*cocktailCL;
+  const total=alcoholCost+extra;
+  const ratio=sale?((total/sale)*100):0;
+
+  document.getElementById("netBottle").textContent=net?`₺ ${net.toFixed(2)}`:"—";
+  document.getElementById("perCL").textContent=perCL?`₺ ${perCL.toFixed(2)}`:"—";
+  document.getElementById("alcoholCost").textContent=alcoholCost?`₺ ${alcoholCost.toFixed(2)}`:"—";
+  document.getElementById("totalCost").textContent=total?`₺ ${total.toFixed(2)}`:"—";
+  document.getElementById("ratio").textContent=ratio?`% ${ratio.toFixed(1)}`:"—";
 }
 </script>
 </body>
