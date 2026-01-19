@@ -47,6 +47,14 @@
 
     <div class="grid">
       <div>
+  <label for="urunAra">Ürün Seç</label>
+  <div class="input">
+    <input id="urunAra" list="urunListesi" placeholder="Ürün adı yaz...">
+    <datalist id="urunListesi"></datalist>
+  </div>
+  <div class="hint">Ürün listesi CSV dosyasından gelir</div>
+</div>
+      <div>
         <label for="price">Şişe Fiyatı</label>
         <div class="input"><span>₺</span><input id="price" type="number" step="any" placeholder="500"></div>
       </div>
@@ -151,6 +159,18 @@ window.addEventListener('DOMContentLoaded',()=>{
     navigator.serviceWorker.register("./sw.js").catch(console.error);
   }
 });
+const urunInput = document.getElementById("urunAra");
+if (urunInput) {
+  urunInput.addEventListener("change", function () {
+    const secilen = urunler.find(u => u.ad === this.value);
+    if (!secilen) return;
+
+    els.price.value = secilen.fiyat;
+    els.cl.value = secilen.cl;
+    calc();
+  });
+}
+  
   /* ===============================
    ÜRÜN LİSTESİ (CSV'DEN OKUMA)
 ================================ */
@@ -185,17 +205,6 @@ fetch("urunler.csv")
   })
   .catch(err => console.error("Ürün listesi yüklenemedi:", err));
 
-/* ===============================
-   ÜRÜN SEÇİLİNCE ALANLARI DOLDUR
-================================ */
-
-document.getElementById("urunAra").addEventListener("change", function () {
-  const secilen = urunler.find(u => u.ad === this.value);
-  if (!secilen) return;
-
-  els.price.value = secilen.fiyat;
-  els.cl.value = secilen.cl;
-  calc();
 });
 </script>
 </body>
