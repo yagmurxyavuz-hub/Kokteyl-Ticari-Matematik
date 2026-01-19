@@ -23,7 +23,7 @@
   .input{display:flex;align-items:center;border:1px solid #e3e6ee;border-radius:12px;padding:10px 12px;gap:8px;background:#fff}
   .input span{opacity:.7;font-size:14px;white-space:nowrap}
   .input input{flex:1;border:0;outline:none;font-size:16px;min-width:0;background:transparent}
-  .input input[readonly]{opacity:.85}
+  .input input[readonly]{opacity:.9}
   .hint{font-size:12px;color:#666;margin-top:2px}
   .result{display:grid;gap:10px;margin-top:12px}
   .tile{border:1px solid #e9edf6;border-radius:14px;padding:12px 14px;background:#0f172a;color:#fff}
@@ -36,19 +36,32 @@
   .ghost{background:#eef2ff;color:#111}
   .danger{background:#fee2e2;color:#991b1b}
   .footer{margin-top:10px;color:#666;font-size:12px;text-align:center}
+  hr{border:none;border-top:1px solid #eef2ff;margin:6px 0}
 
-  /* Modern dropdown */
-  .dropdown{position:relative}
-  .dropdown-list{
-    position:absolute; top:100%; left:0; right:0;
-    background:#fff; border:1px solid #e3e6ee;
-    border-radius:12px; max-height:240px;
-    overflow:auto; display:none; z-index:50;
-    box-shadow:0 10px 25px rgba(0,0,0,.12);
-    margin-top:6px;
+  /* MODERN DROPDOWN (overlay) */
+  .dropdown-panel{
+    position:fixed; inset:0;
+    background:rgba(15,23,42,.35);
+    display:none; align-items:center; justify-content:center;
+    padding:18px; z-index:999;
   }
-  .dropdown-item{padding:10px 12px; cursor:pointer; font-size:14px}
+  .dropdown-card{
+    width:min(620px, 96vw);
+    background:#fff;
+    border-radius:16px;
+    border:1px solid #e9edf6;
+    box-shadow:0 20px 60px rgba(0,0,0,.18);
+    overflow:hidden;
+  }
+  .dropdown-head{padding:12px;border-bottom:1px solid #eef2ff;background:#fafbff}
+  .dropdown-listbox{max-height:55vh;overflow:auto}
+  .dropdown-item{
+    padding:12px 14px; cursor:pointer; font-size:14px;
+    border-bottom:1px solid #f1f5ff;
+  }
   .dropdown-item:hover{background:#eef2ff}
+  .row2{display:flex;gap:10px}
+  .row2 > *{flex:1}
 </style>
 </head>
 
@@ -58,14 +71,12 @@
   <p class="sub">Ürün seç → fiyat & CL dosyadan gelsin. İskonto % ile net fiyatı düşer. Kokteyl maliyeti ve kârı hesaplanır.</p>
 
   <div class="grid">
-    <!-- ÜRÜN SEÇ -->
+    <!-- ÜRÜN SEÇ (MODERN DROPDOWN) -->
     <div>
       <label>Ürün Seç</label>
-      <div class="dropdown">
-        <div class="input">
-          <input id="urunAra" placeholder="Ürün ara..." autocomplete="off">
-        </div>
-        <div id="urunListe" class="dropdown-list"></div>
+      <div class="input" id="urunTrigger" style="cursor:pointer">
+        <span>🔎</span>
+        <input id="urunSelected" placeholder="Ürün seç..." readonly>
       </div>
       <div class="hint">Ürünler urunler.csv dosyasından okunur</div>
     </div>
@@ -76,15 +87,17 @@
     </div>
 
     <div>
+      <label for="cl">Şişe CL (dosyadan)</label>
+      <div class="input"><span>CL</span><input id="cl" type="number" step="any" placeholder="—" readonly></div>
+    </div>
+
+    <div>
       <label for="discPct">İskonto (%)</label>
       <div class="input"><span>%</span><input id="discPct" type="number" step="any" placeholder="10"></div>
       <div class="hint">İskonto yüzde olarak şişe fiyatından düşülür</div>
     </div>
 
-    <div>
-      <label for="cl">Şişe CL (dosyadan)</label>
-      <div class="input"><span>CL</span><input id="cl" type="number" step="any" placeholder="—" readonly></div>
-    </div>
+    <hr>
 
     <div>
       <label for="usecl">Kokteyl’de Kullanılan Alkol (CL)</label>
@@ -92,9 +105,9 @@
     </div>
 
     <div>
-      <label for="other">Diğer Maliyet (kokteyl başı)</label>
+      <label for="other">Diğer Maliyet (1 kokteyl)</label>
       <div class="input"><span>₺</span><input id="other" type="number" step="any" placeholder="20"></div>
-      <div class="hint">Limon, şurup, garnish vb. (1 kokteyl için)</div>
+      <div class="hint">Limon, şurup, garnish vb. (tek kokteyl)</div>
     </div>
 
     <div>
@@ -121,12 +134,26 @@
   </section>
 
   <div class="btns">
-    <button class="primary" id="copyBtn">Sonuçları kopyala</button>
+    <button class="ghost" id="copyBtn">Sonuçları kopyala</button>
     <button class="danger" id="resetBtn">Sıfırla</button>
   </div>
 
-  <div class="footer">İpucu: Güncelleme görmüyorsan hard refresh (Ctrl+F5) veya Service Worker cache temizliği gerekebilir.</div>
+  <div class="footer">Güncelleme görünmüyorsa Ctrl+F5 yapın veya Service Worker cache temizleyin.</div>
 </main>
+
+<!-- ÜRÜN SEÇ PANELİ -->
+<div id="urunPanel" class="dropdown-panel" aria-hidden="true">
+  <div class="dropdown-card" role="dialog" aria-modal="true">
+    <div class="dropdown-head">
+      <div class="input">
+        <span style="opacity:.7">Ara</span>
+        <input id="urunSearch" placeholder="Yazmaya başla...">
+      </div>
+      <div class="hint" id="urunInfo" style="margin-top:8px">Liste yükleniyor…</div>
+    </div>
+    <div id="urunList" class="dropdown-listbox"></div>
+  </div>
+</div>
 
 <script>
 /* -----------------------------
@@ -142,19 +169,17 @@ function fmtPct(n){
   return "% " + n.toFixed(1).replace('.',',');
 }
 function cleanName(s){
-  // Başta/sonda düz veya akıllı tırnakları kaldır
+  // Başta/sonda düz veya akıllı tırnakları kaldır + BOM temizle
   return String(s ?? "")
     .trim()
-    .replace(/^[\uFEFF\s"“”']+/, "")   // baştaki
-    .replace(/["“”'\s]+$/, "");       // sondaki
+    .replace(/^[\uFEFF\s"“”']+/, "")
+    .replace(/["“”'\s]+$/, "");
 }
 function toNum(s){
-  // "1.234,56" gibi TR formatlarını da tolere et
   if(s == null) return NaN;
   const str = String(s).trim();
   if(!str) return NaN;
-  // Eğer hem nokta hem virgül varsa TR olma ihtimali yüksek: 1.234,56 -> 1234.56
-  const normalized = str.includes(",") && str.includes(".")
+  const normalized = (str.includes(",") && str.includes("."))
     ? str.replace(/\./g,"").replace(",",".")
     : str.replace(",",".");
   const n = Number(normalized);
@@ -165,11 +190,16 @@ function toNum(s){
    Elements
 ----------------------------- */
 const els = {
-  urunAra: $("#urunAra"),
-  urunListe: $("#urunListe"),
+  urunTrigger: $("#urunTrigger"),
+  urunPanel: $("#urunPanel"),
+  urunSelected: $("#urunSelected"),
+  urunSearch: $("#urunSearch"),
+  urunList: $("#urunList"),
+  urunInfo: $("#urunInfo"),
+
   price: $("#price"),
-  discPct: $("#discPct"),
   cl: $("#cl"),
+  discPct: $("#discPct"),
   usecl: $("#usecl"),
   other: $("#other"),
   sale: $("#sale"),
@@ -189,22 +219,42 @@ const out = {
 let urunler = [];
 
 /* -----------------------------
-   CSV Load (virgül/; destekli + tırnak temizliği)
+   Modern Dropdown Open/Close
+----------------------------- */
+function openPanel(){
+  els.urunPanel.style.display="flex";
+  els.urunPanel.setAttribute("aria-hidden","false");
+  els.urunSearch.value="";
+  renderUrunList(urunler);
+  setTimeout(()=>els.urunSearch.focus(), 0);
+}
+function closePanel(){
+  els.urunPanel.style.display="none";
+  els.urunPanel.setAttribute("aria-hidden","true");
+}
+els.urunTrigger.addEventListener("click", openPanel);
+els.urunPanel.addEventListener("click", (e)=>{
+  if(e.target === els.urunPanel) closePanel();
+});
+document.addEventListener("keydown",(e)=>{
+  if(e.key === "Escape" && els.urunPanel.style.display==="flex") closePanel();
+});
+
+/* -----------------------------
+   CSV Load (virgül / ; destekli)
 ----------------------------- */
 fetch("urunler.csv")
   .then(r=>{
-    if(!r.ok) throw new Error("urunler.csv bulunamadı (404). Dosya index.html ile aynı klasörde olmalı.");
+    if(!r.ok) throw new Error("urunler.csv bulunamadı (404). index.html ile aynı klasörde olmalı.");
     return r.text();
   })
   .then(text=>{
     const lines = text.replace(/\r/g,"").trim().split("\n");
     if(lines.length <= 1) throw new Error("urunler.csv boş veya sadece başlık var.");
 
-    // başlıktan ayırıcı tespit et
     const header = lines[0];
-    const sep = header.includes(";") && !header.includes(",") ? ";" : ",";
+    const sep = (header.includes(";") && !header.includes(",")) ? ";" : ",";
 
-    // satırları işle
     urunler = lines.slice(1).map(line=>{
       const parts = line.split(sep);
       const ad = cleanName(parts[0]);
@@ -213,54 +263,53 @@ fetch("urunler.csv")
       return { ad, fiyat, cl };
     }).filter(u=>u.ad && Number.isFinite(u.fiyat) && Number.isFinite(u.cl));
 
-    renderList(urunler);
+    els.urunInfo.textContent = `Toplam ${urunler.length} ürün yüklendi`;
+    renderUrunList(urunler);
   })
   .catch(err=>{
     console.error(err);
-    // dropdown boş kalmasın diye kullanıcıya ipucu
-    els.urunAra.placeholder = "Ürün listesi yüklenemedi (Console'a bak)";
+    els.urunInfo.textContent = "Ürün listesi yüklenemedi (Console'a bak)";
   });
 
 /* -----------------------------
-   Dropdown render/filter/select
+   Render + Filter + Select
 ----------------------------- */
-function renderList(list){
-  els.urunListe.innerHTML = "";
-  list.slice(0, 50).forEach(u=>{
-    const item = document.createElement("div");
-    item.className = "dropdown-item";
-    item.textContent = u.ad;
-    item.onclick = ()=>{
-      els.urunAra.value = u.ad;
-      els.price.value = u.fiyat;
-      els.cl.value = u.cl;
-      els.urunListe.style.display = "none";
+function renderUrunList(list){
+  els.urunList.innerHTML="";
+  if(!list || list.length === 0){
+    const empty = document.createElement("div");
+    empty.className="dropdown-item";
+    empty.textContent="Sonuç bulunamadı";
+    empty.style.opacity=".7";
+    els.urunList.appendChild(empty);
+    return;
+  }
+
+  list.slice(0, 400).forEach(u=>{
+    const div=document.createElement("div");
+    div.className="dropdown-item";
+    div.textContent=u.ad;
+    div.onclick=()=>{
+      els.urunSelected.value=u.ad;
+      els.price.value=u.fiyat;
+      els.cl.value=u.cl;
+      closePanel();
       calc();
     };
-    els.urunListe.appendChild(item);
+    els.urunList.appendChild(div);
   });
 }
 
-els.urunAra.addEventListener("input", ()=>{
-  const q = els.urunAra.value.toLowerCase();
+els.urunSearch.addEventListener("input", ()=>{
+  const q = els.urunSearch.value.toLowerCase();
   const filtered = urunler.filter(u=>u.ad.toLowerCase().includes(q));
-  renderList(filtered);
-  els.urunListe.style.display = "block";
-});
-
-els.urunAra.addEventListener("focus", ()=>{
-  renderList(urunler);
-  els.urunListe.style.display = "block";
-});
-
-document.addEventListener("click", (e)=>{
-  if(!e.target.closest(".dropdown")) els.urunListe.style.display = "none";
+  renderUrunList(filtered);
 });
 
 /* -----------------------------
    Calculation
    İskonto % → şişe fiyatından düş
-   Kokteyl kârı
+   Kokteyl kârı (1 ve toplam)
 ----------------------------- */
 function calc(){
   const P = toNum(els.price.value);          // dosyadan
@@ -309,7 +358,7 @@ function calc(){
 
 /* reset / copy */
 $("#resetBtn").addEventListener("click", ()=>{
-  els.urunAra.value = "";
+  els.urunSelected.value = "";
   els.price.value = "";
   els.cl.value = "";
   els.discPct.value = "";
@@ -338,6 +387,14 @@ $("#copyBtn").addEventListener("click", ()=>{
 
 /* initial */
 calc();
+
+/* PWA: Register service worker (varsa) */
+window.addEventListener("load", ()=>{
+  if("serviceWorker" in navigator){
+    navigator.serviceWorker.register("./sw.js").catch(console.error);
+  }
+});
 </script>
 </body>
 </html>
+
