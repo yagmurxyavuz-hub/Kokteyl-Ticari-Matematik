@@ -151,6 +151,53 @@ window.addEventListener('DOMContentLoaded',()=>{
     navigator.serviceWorker.register("./sw.js").catch(console.error);
   }
 });
+  /* ===============================
+   ÜRÜN LİSTESİ (CSV'DEN OKUMA)
+================================ */
+
+let urunler = [];
+
+fetch("urunler.csv")
+  .then(r => {
+    if (!r.ok) throw new Error("urunler.csv bulunamadı");
+    return r.text();
+  })
+  .then(text => {
+    const satirlar = text.trim().split("\n").slice(1);
+
+    urunler = satirlar.map(s => {
+      const [ad, fiyat, cl] = s.split(",");
+      return {
+        ad: ad.trim(),
+        fiyat: Number(fiyat),
+        cl: Number(cl)
+      };
+    });
+
+    const datalist = document.getElementById("urunListesi");
+    datalist.innerHTML = "";
+
+    urunler.forEach(u => {
+      const o = document.createElement("option");
+      o.value = u.ad;
+      datalist.appendChild(o);
+    });
+  })
+  .catch(err => console.error("Ürün listesi yüklenemedi:", err));
+
+/* ===============================
+   ÜRÜN SEÇİLİNCE ALANLARI DOLDUR
+================================ */
+
+document.getElementById("urunAra").addEventListener("change", function () {
+  const secilen = urunler.find(u => u.ad === this.value);
+  if (!secilen) return;
+
+  els.price.value = secilen.fiyat;
+  els.cl.value = secilen.cl;
+
+  calc();
+});
 </script>
 </body>
 </html>
