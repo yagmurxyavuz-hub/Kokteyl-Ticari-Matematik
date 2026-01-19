@@ -46,7 +46,9 @@
     <p class="sub">Şişe fiyatı, iskonto, CL bilgisi + kokteyl için kullanılan alkol CL ve diğer tutarları girin.</p>
 
     <div class="grid">
-      <div>
+     <div>
+ <!-- ÜRÜN SEÇ -->
+<div>
   <label for="urunAra">Ürün Seç</label>
   <div class="input">
     <input
@@ -55,13 +57,6 @@
       placeholder="Ürün ara veya seç">
   </div>
   <datalist id="urunListesi"></datalist>
-</div>
-      <div>
-  <label for="urunAra">Ürün Seç</label>
-  <div class="input">
-    <input id="urunAra" list="urunListesi" placeholder="Ürün adı yaz...">
-    <datalist id="urunListesi"></datalist>
-  </div>
   <div class="hint">Ürün listesi CSV dosyasından gelir</div>
 </div>
       <div>
@@ -185,6 +180,7 @@ if (urunInput) {
    ÜRÜN LİSTESİ (CSV'DEN OKUMA)
 ================================ */
 
+<script>
 let urunler = [];
 
 fetch("urunler.csv")
@@ -213,8 +209,15 @@ fetch("urunler.csv")
       datalist.appendChild(o);
     });
   })
-  .catch(err => console.error("Ürün listesi yüklenemedi:", err));
+  .catch(err => console.error(err));
 
+document.getElementById("urunAra").addEventListener("change", function () {
+  const secilen = urunler.find(u => u.ad === this.value);
+  if (!secilen) return;
+
+  document.getElementById("price").value = secilen.fiyat;
+  document.getElementById("cl").value = secilen.cl;
+  calc();
 });
 </script>
 </body>
