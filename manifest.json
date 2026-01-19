@@ -1,11 +1,10 @@
 {
   "name": "Şişe & Kokteyl Maliyet",
-  "short_name": "Maliyet Hesap",
-  "start_url": "./",
-  "scope": "./",
+  "short_name": "Kokteyl",
+  "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#4f46e5",
+  "background_color": "#00205B",
+  "theme_color": "#00205B",
   "icons": [
     {
       "src": "icons/icon-192.png",
