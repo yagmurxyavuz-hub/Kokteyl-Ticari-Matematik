@@ -243,34 +243,47 @@ document.addEventListener("keydown",(e)=>{
 /* -----------------------------
    CSV Load (virgül / ; destekli)
 ----------------------------- */
-fetch("urunler.csv")
-  .then(r=>{
-    if(!r.ok) throw new Error("urunler.csv bulunamadı (404). index.html ile aynı klasörde olmalı.");
+etch("urunler.csv")
+  .then(r => {
+    if (!r.ok) throw new Error("urunler.csv bulunamadı");
     return r.text();
   })
-  .then(text=>{
-    const lines = text.replace(/\r/g,"").trim().split("\n");
-    if(lines.length <= 1) throw new Error("urunler.csv boş veya sadece başlık var.");
+  .then(text => {
+    const lines = text.replace(/\r/g, "").trim().split("\n");
+    if (lines.length <= 1) throw new Error("CSV boş veya sadece başlık var");
 
-    const header = lines[0];
-    const sep = (header.includes(";") && !header.includes(",")) ? ";" : ",";
+    // Header satırını geç
+    const dataLines = lines.slice(1);
 
-    urunler = lines.slice(1).map(line=>{
-      const parts = line.split(sep);
-      const ad = cleanName(parts[0]);
-      const fiyat = toNum(parts[1]);
-      const cl = toNum(parts[2]);
-      return { ad, fiyat, cl };
-    }).filter(u=>u.ad && Number.isFinite(u.fiyat) && Number.isFinite(u.cl));
+    urunler = dataLines.map(line => {
+      let s = line.trim();
+
+      // Satır komple "..." şeklinde geliyorsa tırnakları kaldır
+      if (s.startsWith('"') && s.endsWith('"')) s = s.slice(1, -1);
+
+      // Ürün adında virgül olabileceği için: sondan 2 virgüle göre ayır
+      const lastComma = s.lastIndexOf(",");
+      const secondLastComma = s.lastIndexOf(",", lastComma - 1);
+      if (lastComma === -1 || secondLastComma === -1) return null;
+
+      const adRaw = s.slice(0, secondLastComma);
+      const fiyatRaw = s.slice(secondLastComma + 1, lastComma);
+      const clRaw = s.slice(lastComma + 1);
+
+      return {
+        ad: cleanName(adRaw),    // baştaki “ / " temizlenir
+        fiyat: toNum(fiyatRaw),  // sayı dönüştürme
+        cl: toNum(clRaw)
+      };
+    }).filter(u => u && u.ad && Number.isFinite(u.fiyat) && Number.isFinite(u.cl));
 
     els.urunInfo.textContent = `Toplam ${urunler.length} ürün yüklendi`;
     renderUrunList(urunler);
   })
-  .catch(err=>{
+  .catch(err => {
     console.error(err);
-    els.urunInfo.textContent = "Ürün listesi yüklenemedi (Console'a bak)";
+    els.urunInfo.textContent = "Ürün listesi yüklenemedi. urunler.csv formatını kontrol edin.";
   });
-
 /* -----------------------------
    Render + Filter + Select
 ----------------------------- */
