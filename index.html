@@ -169,7 +169,6 @@ function fmtPct(n){
   return "% " + n.toFixed(1).replace('.',',');
 }
 function cleanName(s){
-  // Başta/sonda düz veya akıllı tırnakları kaldır + BOM temizle
   return String(s ?? "")
     .trim()
     .replace(/^[\uFEFF\s"“”']+/, "")
@@ -242,40 +241,47 @@ document.addEventListener("keydown",(e)=>{
 
 /* -----------------------------
    CSV Load (virgül / ; destekli)
+   Beklenen kolonlar: ad,fiyat,cl  (sıra önemli)
 ----------------------------- */
-etch("urunler.csv")
+fetch("urunler.csv")
   .then(r => {
     if (!r.ok) throw new Error("urunler.csv bulunamadı");
     return r.text();
   })
   .then(text => {
-    const lines = text.replace(/\r/g, "").trim().split("\n");
+    const cleaned = text.replace(/\r/g, "").trim();
+    const lines = cleaned.split("\n");
     if (lines.length <= 1) throw new Error("CSV boş veya sadece başlık var");
 
-    // Header satırını geç
+    // delimiter'ı header'dan tahmin et
+    const header = lines[0];
+    const delimiter = header.includes(";") && !header.includes(",") ? ";" : ",";
+
     const dataLines = lines.slice(1);
 
     urunler = dataLines.map(line => {
       let s = line.trim();
+      if (!s) return null;
 
       // Satır komple "..." şeklinde geliyorsa tırnakları kaldır
       if (s.startsWith('"') && s.endsWith('"')) s = s.slice(1, -1);
 
-      // Ürün adında virgül olabileceği için: sondan 2 virgüle göre ayır
-      const lastComma = s.lastIndexOf(",");
-      const secondLastComma = s.lastIndexOf(",", lastComma - 1);
-      if (lastComma === -1 || secondLastComma === -1) return null;
+      // Ürün adında ayraç olabilir → sondan 2 ayraçtan böl
+      const lastSep = s.lastIndexOf(delimiter);
+      const secondLastSep = s.lastIndexOf(delimiter, lastSep - 1);
+      if (lastSep === -1 || secondLastSep === -1) return null;
 
-      const adRaw = s.slice(0, secondLastComma);
-      const fiyatRaw = s.slice(secondLastComma + 1, lastComma);
-      const clRaw = s.slice(lastComma + 1);
+      const adRaw = s.slice(0, secondLastSep);
+      const fiyatRaw = s.slice(secondLastSep + 1, lastSep);
+      const clRaw = s.slice(lastSep + 1);
 
-      return {
-        ad: cleanName(adRaw),    // baştaki “ / " temizlenir
-        fiyat: toNum(fiyatRaw),  // sayı dönüştürme
-        cl: toNum(clRaw)
-      };
-    }).filter(u => u && u.ad && Number.isFinite(u.fiyat) && Number.isFinite(u.cl));
+      const ad = cleanName(adRaw);
+      const fiyat = toNum(fiyatRaw);
+      const cl = toNum(clRaw);
+
+      if (!ad || !Number.isFinite(fiyat) || !Number.isFinite(cl)) return null;
+      return { ad, fiyat, cl };
+    }).filter(Boolean);
 
     els.urunInfo.textContent = `Toplam ${urunler.length} ürün yüklendi`;
     renderUrunList(urunler);
@@ -284,6 +290,7 @@ etch("urunler.csv")
     console.error(err);
     els.urunInfo.textContent = "Ürün listesi yüklenemedi. urunler.csv formatını kontrol edin.";
   });
+
 /* -----------------------------
    Render + Filter + Select
 ----------------------------- */
@@ -321,16 +328,14 @@ els.urunSearch.addEventListener("input", ()=>{
 
 /* -----------------------------
    Calculation
-   İskonto % → şişe fiyatından düş
-   Kokteyl kârı (1 ve toplam)
 ----------------------------- */
 function calc(){
-  const P = toNum(els.price.value);          // dosyadan
-  const CL = toNum(els.cl.value);           // dosyadan
-  const discPct = toNum(els.discPct.value); // %
-  const U = toNum(els.usecl.value);         // kokteyl alkol CL
-  const O = toNum(els.other.value);         // diğer maliyet (1 kokteyl)
-  const S = toNum(els.sale.value);          // satış (1 kokteyl)
+  const P = toNum(els.price.value);
+  const CL = toNum(els.cl.value);
+  const discPct = toNum(els.discPct.value);
+  const U = toNum(els.usecl.value);
+  const O = toNum(els.other.value);
+  const S = toNum(els.sale.value);
   const Q = Math.max(1, Math.floor(toNum(els.qty.value) || 1));
 
   if(!Number.isFinite(P) || !Number.isFinite(CL) || CL <= 0){
@@ -341,7 +346,7 @@ function calc(){
   const pct = Number.isFinite(discPct) ? discPct : 0;
   const net = Math.max(0, P - (P * pct / 100));
 
-  const perCL = net / CL; // ₺/CL
+  const perCL = net / CL;
   const alcCost = (Number.isFinite(perCL) && Number.isFinite(U)) ? perCL * U : NaN;
 
   const other = Number.isFinite(O) ? O : 0;
@@ -364,12 +369,10 @@ function calc(){
   out.profitPct.textContent = fmtPct(profitPct);
 }
 
-/* input değiştikçe hesapla */
 ["discPct","usecl","other","sale","qty"].forEach(id=>{
   els[id].addEventListener("input", calc);
 });
 
-/* reset / copy */
 $("#resetBtn").addEventListener("click", ()=>{
   els.urunSelected.value = "";
   els.price.value = "";
@@ -398,16 +401,13 @@ $("#copyBtn").addEventListener("click", ()=>{
   });
 });
 
-/* initial */
 calc();
 
-/* PWA: Register service worker (varsa) */
 window.addEventListener("load", ()=>{
   if("serviceWorker" in navigator){
     navigator.serviceWorker.register("./sw.js").catch(console.error);
   }
 });
 </script>
-</body>
-</html>
+
 
