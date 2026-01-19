@@ -117,7 +117,7 @@
 
     <div>
       <label for="qty">Kokteyl Adedi</label>
-      <div class="input"><span>Adet</span><input id="qty" type="number" step="1" placeholder="1" value="1"></div>
+      <div class="input"><span>Adet</span><input id="qty" type="number" step="1" placeholder="1" value="1" readonly></div>
     </div>
   </div>
 
@@ -336,12 +336,11 @@ function calc(){
   const U = toNum(els.usecl.value);
   const O = toNum(els.other.value);
   const S = toNum(els.sale.value);
-  const Q = Math.max(1, Math.floor(toNum(els.qty.value) || 1));
-
-  if(!Number.isFinite(P) || !Number.isFinite(CL) || CL <= 0){
-    Object.values(out).forEach(el=>el.textContent="—");
-    return;
-  }
+  let Q = 1;
+if (Number.isFinite(CL) && CL > 0 && Number.isFinite(U) && U > 0) {
+  Q = Math.max(1, Math.floor(CL / U)); // tam kokteyl adedi
+}
+els.qty.value = String(Q);
 
   const pct = Number.isFinite(discPct) ? discPct : 0;
   const net = Math.max(0, P - (P * pct / 100));
@@ -369,7 +368,7 @@ function calc(){
   out.profitPct.textContent = fmtPct(profitPct);
 }
 
-["discPct","usecl","other","sale","qty"].forEach(id=>{
+["discPct","usecl","other","sale"].forEach(id=>{
   els[id].addEventListener("input", calc);
 });
 
