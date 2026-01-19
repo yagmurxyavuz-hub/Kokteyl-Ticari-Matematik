@@ -2,223 +2,145 @@
 <html lang="tr">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Şişe & Kokteyl Maliyet Hesap</title>
 
-<!-- PWA -->
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#4f46e5">
-<link rel="apple-touch-icon" href="icons/icon-192.png">
-
 <style>
-  :root{--pad:16px;--radius:18px;}
-  *{box-sizing:border-box}
-  body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:0;background:#f6f7fb;color:#111;display:flex;min-height:100svh;align-items:center;justify-content:center}
-  .card{width:min(600px,95vw);background:#fff;border-radius:var(--radius);box-shadow:0 10px 30px rgba(0,0,0,.08);padding:var(--pad)}
-  h1{font-size:clamp(20px,5vw,26px);margin:0 0 6px}
-  p.sub{margin:.25rem 0 1rem;color:#555;font-size:14px}
-  .grid{display:grid;grid-template-columns:1fr;gap:12px;margin:8px 0 14px}
-  @media(min-width:560px){.grid{grid-template-columns:1fr 1fr}}
-  label{font-size:12px;color:#555;margin-bottom:6px;display:block}
-  .input{display:flex;align-items:center;border:1px solid #e3e6ee;border-radius:12px;padding:10px 12px;gap:8px;background:#fff}
-  .input span{opacity:.7;font-size:14px;white-space:nowrap}
-  .input input{flex:1;border:0;outline:none;font-size:16px;min-width:0}
-  .hint{font-size:12px;color:#666;margin-top:2px}
-  .result{display:grid;gap:10px;margin-top:12px}
-  .tile{border:1px solid #e9edf6;border-radius:14px;padding:12px 14px;background:#0f172a;color:#fff}
-  .tile.light{background:#fff;color:#111}
-  .tile .k{opacity:.8;font-size:12px}
-  .tile .v{font-size:18px;font-weight:600;margin-top:2px;word-break:break-word}
-  .btns{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
-  button{border:0;border-radius:12px;padding:12px 14px;font-size:15px;cursor:pointer}
-  .primary{background:#4f46e5;color:#fff}
-  .ghost{background:#eef2ff;color:#111}
-  .danger{background:#fee2e2;color:#991b1b}
-  .footer{margin-top:10px;color:#666;font-size:12px;text-align:center}
-  .row{display:flex;gap:8px;align-items:center}
-  .chip{display:flex;align-items:center;gap:8px;padding:6px 10px;border:1px solid #e3e6ee;border-radius:999px;user-select:none;cursor:pointer}
-  .chip input{accent-color:#4f6cff}
+:root{--radius:14px}
+body{font-family:system-ui;background:#f6f7fb;margin:0;display:flex;justify-content:center;align-items:center;min-height:100vh}
+.card{background:#fff;width:min(600px,95%);padding:16px;border-radius:18px;box-shadow:0 10px 30px rgba(0,0,0,.08)}
+label{font-size:12px;color:#555;margin-bottom:6px;display:block}
+.input{border:1px solid #e3e6ee;border-radius:12px;padding:10px}
+input{border:0;outline:0;width:100%;font-size:16px}
+.grid{display:grid;gap:12px}
+.result{margin-top:14px}
+.tile{background:#0f172a;color:#fff;padding:12px;border-radius:12px;margin-bottom:8px}
+.tile.light{background:#fff;color:#111;border:1px solid #e9edf6}
+button{border:0;border-radius:12px;padding:12px;font-size:15px;cursor:pointer}
+.primary{background:#4f46e5;color:#fff}
+
+/* DROPDOWN */
+.dropdown{position:relative}
+.dropdown-list{
+  position:absolute;
+  top:100%;
+  left:0;
+  right:0;
+  background:#fff;
+  border:1px solid #e3e6ee;
+  border-radius:12px;
+  max-height:220px;
+  overflow:auto;
+  display:none;
+  z-index:10
+}
+.dropdown-item{
+  padding:10px;
+  cursor:pointer
+}
+.dropdown-item:hover{
+  background:#eef2ff
+}
 </style>
 </head>
+
 <body>
-  <main class="card">
-    <h1>Şişe & Kokteyl Maliyet Hesap</h1>
-    <p class="sub">Şişe fiyatı, iskonto, CL bilgisi + kokteyl için kullanılan alkol CL ve diğer tutarları girin.</p>
+<main class="card">
+<h2>Şişe & Kokteyl Maliyet</h2>
 
-    <div class="grid">
-     <div>
- <!-- ÜRÜN SEÇ -->
+<div class="grid">
+
+<!-- MODERN ÜRÜN SEÇ -->
 <div>
-  <label for="urunAra">Ürün Seç</label>
+<label>Ürün Seç</label>
+<div class="dropdown">
   <div class="input">
-    <input
-      id="urunAra"
-      list="urunListesi"
-      placeholder="Ürün ara veya seç">
+    <input id="urunAra" placeholder="Ürün ara...">
   </div>
-  <datalist id="urunListesi"></datalist>
-  <div class="hint">Ürün listesi CSV dosyasından gelir</div>
+  <div id="urunListe" class="dropdown-list"></div>
 </div>
-      <div>
-        <label for="price">Şişe Fiyatı</label>
-        <div class="input"><span>₺</span><input id="price" type="number" step="any" placeholder="500"></div>
-      </div>
-      <div>
-        <label for="disc">İskonto</label>
-        <div class="input"><span>₺/%</span><input id="disc" type="number" step="any" placeholder="50"></div>
-        <div class="row" style="margin-top:6px">
-          <label class="chip"><input type="radio" name="dtype" value="amount" checked> Tutar</label>
-          <label class="chip"><input type="radio" name="dtype" value="percent"> Yüzde</label>
-        </div>
-      </div>
-      <div>
-        <label for="cl">Şişe CL</label>
-        <div class="input"><span>CL</span><input id="cl" type="number" step="any" placeholder="70"></div>
-      </div>
-      <div>
-        <label for="qty">Adet (ops.)</label>
-        <div class="input"><span>Adet</span><input id="qty" type="number" step="1" placeholder="6"></div>
-      </div>
-      <div>
-        <label for="usecl">Kokteyl’de Kullanılan Alkol CL</label>
-        <div class="input"><span>CL</span><input id="usecl" type="number" step="any" placeholder="5"></div>
-      </div>
-      <div>
-        <label for="other">Diğer Tutarlar</label>
-        <div class="input"><span>₺</span><input id="other" type="number" step="any" placeholder="20"></div>
-      </div>
-      <div>
-        <label for="sale">Kokteyl Satış Fiyatı</label>
-        <div class="input"><span>₺</span><input id="sale" type="number" step="any" placeholder="150"></div>
-      </div>
-    </div>
+</div>
 
-    <section class="result">
-      <div class="tile"><div class="k">Net Şişe Fiyatı</div><div class="v" id="netOut">—</div></div>
-      <div class="tile light"><div class="k">İskonto Oranı</div><div class="v" id="rateOut">—</div></div>
-      <div class="tile light"><div class="k">₺ / Litre</div><div class="v" id="perL">—</div></div>
-      <div class="tile light"><div class="k">₺ / CL</div><div class="v" id="perCL">—</div></div>
-      <div class="tile light"><div class="k">Toplam (Adet × Net)</div><div class="v" id="totalOut">—</div></div>
-      <div class="tile"><div class="k">Kokteyl Alkol Maliyeti</div><div class="v" id="alcCost">—</div></div>
-      <div class="tile"><div class="k">Toplam Kokteyl Maliyeti</div><div class="v" id="cocktailCost">—</div></div>
-      <div class="tile light"><div class="k">Maliyet / Satış Oranı</div><div class="v" id="marginOut">—</div></div>
-    </section>
+<div>
+<label>Şişe Fiyatı</label>
+<div class="input"><input id="price" type="number"></div>
+</div>
 
-    <div class="btns">
-      <button class="primary" id="linkBtn">Bu ayarlarla link</button>
-      <button class="ghost" id="copyBtn">Sonuçları kopyala</button>
-      <button class="danger" id="resetBtn">Sıfırla</button>
-    </div>
-    <div class="footer">PWA: Bu sayfa çevrimdışı açılabilir. Yer imlerine veya ana ekrana ekleyin.</div>
-  </main>
+<div>
+<label>Şişe CL</label>
+<div class="input"><input id="cl" type="number"></div>
+</div>
+
+</div>
+
+<section class="result">
+<div class="tile"><div>Net Şişe Fiyatı</div><div id="netOut">—</div></div>
+<div class="tile light"><div>₺ / CL</div><div id="perCL">—</div></div>
+</section>
+
+<button class="primary" onclick="calc()">Hesapla</button>
+
+</main>
 
 <script>
-const $=(s)=>document.querySelector(s);
-const ids=["price","disc","cl","qty","usecl","other","sale"];
-const els=Object.fromEntries(ids.map(id=>[id,$("#"+id)]));
-const out={netOut:$("#netOut"),rateOut:$("#rateOut"),perL:$("#perL"),perCL:$("#perCL"),totalOut:$("#totalOut"),alcCost:$("#alcCost"),cocktailCost:$("#cocktailCost"),marginOut:$("#marginOut")};
+const urunAra = document.getElementById("urunAra");
+const urunListe = document.getElementById("urunListe");
+const priceEl = document.getElementById("price");
+const clEl = document.getElementById("cl");
 
-function fmt(n,unit="₺"){if(!Number.isFinite(n))return "—";const f=n.toLocaleString(undefined,{maximumFractionDigits:3});return unit?unit+" "+f:f;}
-function calc(){
-  const P=parseFloat(els.price.value);const Dv=parseFloat(els.disc.value);const CL=parseFloat(els.cl.value);
-  const Q=parseFloat(els.qty.value);const U=parseFloat(els.usecl.value);const O=parseFloat(els.other.value);const S=parseFloat(els.sale.value);
-  const dtype=document.querySelector('input[name="dtype"]:checked').value;
-  if(!Number.isFinite(P)){Object.values(out).forEach(el=>el.textContent="—");return;}
-  let discount=Number.isFinite(Dv)?Dv:0;let rate=0;
-  if(dtype==="percent"){rate=Number.isFinite(Dv)?Dv/100:0;discount=P*rate;}else{rate=Number.isFinite(Dv)?Dv/P:0;}
-  const net=Math.max(0,P-discount);
-  const litre=Number.isFinite(CL)?CL/100:NaN;
-  const perL=Number.isFinite(litre)&&litre>0?net/litre:NaN;
-  const perCL=Number.isFinite(CL)&&CL>0?net/CL:NaN;
-  const total=Number.isFinite(Q)?net*Q:NaN;
-  const alcCost=Number.isFinite(perCL)&&Number.isFinite(U)?perCL*U:NaN;
-  const cocktailCost=(Number.isFinite(alcCost)?alcCost:0)+(Number.isFinite(O)?O:0);
-  const margin=Number.isFinite(S)&&S>0&&Number.isFinite(cocktailCost)?cocktailCost/S:NaN;
-  out.netOut.textContent=fmt(net);
-  out.rateOut.textContent=Number.isFinite(rate)?(rate*100).toFixed(2).replace('.',',')+" %":"—";
-  out.perL.textContent=fmt(perL);out.perCL.textContent=fmt(perCL);
-  out.totalOut.textContent=Number.isFinite(total)?fmt(total):"—";
-  out.alcCost.textContent=Number.isFinite(alcCost)?fmt(alcCost):"—";
-  out.cocktailCost.textContent=Number.isFinite(cocktailCost)?fmt(cocktailCost):"—";
-  out.marginOut.textContent=Number.isFinite(margin)?(margin*100).toFixed(1).replace('.',',')+" %":"—";
-}
-ids.forEach(id=>els[id].addEventListener('input',calc));
-document.querySelectorAll('input[name="dtype"]').forEach(r=>r.addEventListener('change',calc));
-$("#resetBtn").addEventListener('click',()=>{ids.forEach(id=>els[id].value="");document.querySelector('input[name="dtype"][value="amount"]').checked=true;Object.values(out).forEach(el=>el.textContent="—");});
-$("#copyBtn").addEventListener('click',()=>{
-  const txt=Object.values(out).map(el=>el.previousElementSibling.textContent+": "+el.textContent).join("\n");
-  navigator.clipboard?.writeText(txt).then(()=>{$("#copyBtn").textContent="Kopyalandı";setTimeout(()=>$("#copyBtn").textContent="Sonuçları kopyala",1200);});
-});
-$("#linkBtn").addEventListener('click',()=>{
-  const params=new URLSearchParams();ids.forEach(id=>{if(els[id].value)params.set(id,els[id].value)});params.set("dtype",document.querySelector('input[name="dtype"]:checked').value);
-  const url=location.origin+location.pathname+"#"+params.toString();
-  navigator.clipboard?.writeText(url).then(()=>alert("Link kopyalandı:\n"+url),()=>prompt("Bu linki kaydedin:",url));
-});
-window.addEventListener('DOMContentLoaded',()=>{
-  const h=new URLSearchParams(location.hash.slice(1));
-  ids.forEach(id=>{if(h.has(id))els[id].value=h.get(id)});
-  if(h.has("dtype"))document.querySelector('input[name="dtype"][value="'+(h.get("dtype")==="percent"?"percent":"amount")+'"]').checked=true;
-  calc();
-  // Register service worker
-  if("serviceWorker" in navigator){
-    navigator.serviceWorker.register("./sw.js").catch(console.error);
-  }
-});
-const urunInput = document.getElementById("urunAra");
-if (urunInput) {
-  urunInput.addEventListener("change", function () {
-    const secilen = urunler.find(u => u.ad === this.value);
-    if (!secilen) return;
-
-    els.price.value = secilen.fiyat;
-    els.cl.value = secilen.cl;
-    calc();
-  });
-}
-  
-  /* ===============================
-   ÜRÜN LİSTESİ (CSV'DEN OKUMA)
-================================ */
-
-<script>
 let urunler = [];
 
+/* CSV OKU */
 fetch("urunler.csv")
-  .then(r => {
-    if (!r.ok) throw new Error("urunler.csv bulunamadı");
-    return r.text();
-  })
-  .then(text => {
-    const satirlar = text.trim().split("\n").slice(1);
-
-    urunler = satirlar.map(s => {
-      const [ad, fiyat, cl] = s.split(",");
-      return {
-        ad: ad.trim(),
-        fiyat: Number(fiyat),
-        cl: Number(cl)
-      };
-    });
-
-    const datalist = document.getElementById("urunListesi");
-    datalist.innerHTML = "";
-
-    urunler.forEach(u => {
-      const o = document.createElement("option");
-      o.value = u.ad;
-      datalist.appendChild(o);
-    });
-  })
-  .catch(err => console.error(err));
-
-document.getElementById("urunAra").addEventListener("change", function () {
-  const secilen = urunler.find(u => u.ad === this.value);
-  if (!secilen) return;
-
-  document.getElementById("price").value = secilen.fiyat;
-  document.getElementById("cl").value = secilen.cl;
-  calc();
+.then(r=>r.text())
+.then(t=>{
+  const rows=t.trim().split("\n").slice(1);
+  urunler=rows.map(r=>{
+    const [ad,fiyat,cl]=r.split(",");
+    return {ad,fiyat:+fiyat,cl:+cl};
+  });
+  renderList(urunler);
 });
+
+/* LISTE YAZ */
+function renderList(list){
+  urunListe.innerHTML="";
+  list.forEach(u=>{
+    const div=document.createElement("div");
+    div.className="dropdown-item";
+    div.textContent=u.ad;
+    div.onclick=()=>{
+      urunAra.value=u.ad;
+      priceEl.value=u.fiyat;
+      clEl.value=u.cl;
+      urunListe.style.display="none";
+      calc();
+    };
+    urunListe.appendChild(div);
+  });
+}
+
+/* ARA */
+urunAra.addEventListener("input",()=>{
+  const q=urunAra.value.toLowerCase();
+  const f=urunler.filter(u=>u.ad.toLowerCase().includes(q));
+  renderList(f);
+  urunListe.style.display="block";
+});
+
+/* ODAK */
+urunAra.addEventListener("focus",()=>urunListe.style.display="block");
+document.addEventListener("click",e=>{
+  if(!e.target.closest(".dropdown")) urunListe.style.display="none";
+});
+
+/* HESAP */
+function calc(){
+  const p=+priceEl.value;
+  const cl=+clEl.value;
+  document.getElementById("netOut").textContent=p?`₺ ${p}`:"—";
+  document.getElementById("perCL").textContent=(p&&cl)?`₺ ${(p/cl).toFixed(2)}`:"—";
+}
 </script>
 </body>
 </html>
