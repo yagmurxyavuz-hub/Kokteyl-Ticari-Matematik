@@ -327,6 +327,11 @@ els.urunSearch.addEventListener("input", ()=>{
 function calc(){
   const P = toNum(els.price.value);
   const CL = toNum(els.cl.value);
+  if(!Number.isFinite(P) || !Number.isFinite(CL) || CL <= 0){
+  Object.values(out).forEach(el=>el.textContent="—");
+  els.qty.value = "1";
+  return;
+}
   const discPct = toNum(els.discPct.value);
   const U = toNum(els.usecl.value);
   const O = toNum(els.other.value);
@@ -355,8 +360,6 @@ els.qty.value = String(Q);
     : NaN;
 
   out.netOut.textContent = fmtTL(net);
-  out.perCL.textContent = fmtTL(perCL);
-  out.alcCost.textContent = fmtTL(alcCost);
   out.cocktailCost.textContent = fmtTL(cocktailCost);
   out.profitOne.textContent = fmtTL(profitOne);
   out.profitTotal.textContent = fmtTL(profitTotal);
@@ -377,22 +380,6 @@ $("#resetBtn").addEventListener("click", ()=>{
   els.sale.value = "";
   els.qty.value = "1";
   Object.values(out).forEach(el=>el.textContent="—");
-});
-
-$("#copyBtn").addEventListener("click", ()=>{
-  const lines = [
-    "Net Şişe Fiyatı: " + out.netOut.textContent,
-    "₺ / CL: " + out.perCL.textContent,
-    "Kokteyl Alkol Maliyeti (1): " + out.alcCost.textContent,
-    "Toplam Kokteyl Maliyeti (1): " + out.cocktailCost.textContent,
-    "Kâr (1): " + out.profitOne.textContent,
-    "Toplam Kâr: " + out.profitTotal.textContent,
-    "Kâr Oranı: " + out.profitPct.textContent,
-  ].join("\n");
-  navigator.clipboard?.writeText(lines).then(()=>{
-    $("#copyBtn").textContent = "Kopyalandı";
-    setTimeout(()=>$("#copyBtn").textContent="Sonuçları kopyala",1200);
-  });
 });
 
 calc();
