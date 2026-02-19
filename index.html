@@ -80,7 +80,7 @@
     </div>
 
     <div>
-      <label for="price">Şişe Fiyatı (dosyadan)</label>
+      <label for="price">Distribütör On Trade Satış Fiyatı (dosyadan)</label>
       <div class="input"><span>₺</span><input id="price" type="number" step="any" placeholder="—" readonly /></div>
     </div>
 
@@ -92,7 +92,7 @@
     <div>
       <label for="discPct">İskonto (%)</label>
       <div class="input"><span>%</span><input id="discPct" type="number" step="any" placeholder="10" /></div>
-      <div class="hint">İskonto yüzde olarak şişe fiyatından düşülür</div>
+      <div class="hint">Pernod Ricard Tarafınan Karşılanan İskonto Oranıdır</div>
     </div>
 
     <hr>
@@ -109,8 +109,9 @@
     </div>
 
     <div>
-      <label for="sale">Kokteyl Satış Fiyatı (1 adet)</label>
+      <label for="sale">Nokta Menüsündeki Kokteyl Satış Fiyatı (1 adet)</label>
       <div class="input"><span>₺</span><input id="sale" type="number" step="any" placeholder="150" /></div>
+      <div class="hint">Nokta tarafından belirlenen kokteyl satış fiyatıdır</div>
     </div>
 
     <div>
@@ -141,7 +142,7 @@
     </div>
 
     <div class="tile light">
-      <div class="k">Kâr Oranı</div>
+      <div class="k">Tahmini Kar Oranı</div>
       <div class="v" id="profitPct">—</div>
     </div>
   </section>
@@ -150,7 +151,13 @@
     <button class="danger" id="resetBtn" type="button">Sıfırla</button>
   </div>
 
-  <div class="footer">Güncelleme görünmüyorsa Ctrl+F5 yapın veya Service Worker cache temizleyin.</div>
+  <div class="footer">
+    Güncelleme görünmüyorsa Ctrl+F5 yapın veya Service Worker cache temizleyin.
+    <br><br>
+    *Bu hesaplama sadece Pernod Ricard satış ekiplerinin kullanımına özgüdür ve sadece hesaplama kolaylığı sağlamak amacıyla satış ekiplerinin kullanımı için planlanmıştır.
+    <br>
+    Noktanın menü kokteyl satış fiyatına yönlendirme yapılmamalıdır.
+  </div>
 </main>
 
 <div id="urunPanel" class="dropdown-panel" aria-hidden="true">
@@ -422,5 +429,3 @@ window.addEventListener("load", ()=>{
 </script>
 </body>
 </html>
-
-
