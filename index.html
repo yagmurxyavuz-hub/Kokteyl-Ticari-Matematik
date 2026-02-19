@@ -67,7 +67,7 @@
 
 <body>
 <main class="card">
-  <h1>Şişe & Kokteyl Maliyet Hesap</h1>
+  <h1>Şişe & Kokteyl Maliyet Tahminlemesi</h1>
   <p class="sub"></p>
 
   <div class="grid">
@@ -92,7 +92,7 @@
     <div>
       <label for="discPct">İskonto (%)</label>
       <div class="input"><span>%</span><input id="discPct" type="number" step="any" placeholder="10" /></div>
-      <div class="hint">Pernod Ricard Tarafınan Karşılanan İskonto Oranıdır</div>
+      <div class="hint">*Pernod Ricard tarafınan karşılanan iskonto oranıdır</div>
     </div>
 
     <hr>
@@ -111,18 +111,18 @@
     <div>
       <label for="sale">Nokta Menüsündeki Kokteyl Satış Fiyatı (1 adet)</label>
       <div class="input"><span>₺</span><input id="sale" type="number" step="any" placeholder="150" /></div>
-      <div class="hint">Nokta tarafından belirlenen kokteyl satış fiyatıdır</div>
+      <div class="hint">*Nokta tarafından belirlenen kokteyl satış fiyatıdır</div>
     </div>
 
     <div>
-      <label for="qty">Kokteyl Adedi (şişeden çıkan)</label>
+      <label for="qty">Kokteyl Adedi </label>
       <div class="input"><span>Adet</span><input id="qty" type="number" step="1" value="1" readonly /></div>
     </div>
   </div>
 
   <section class="result">
     <div class="tile">
-      <div class="k">Net Şişe Fiyatı (iskonto sonrası)</div>
+      <div class="k">İskonto Uygulanmış Şişe Fiyatı</div>
       <div class="v" id="netOut">—</div>
     </div>
 
@@ -152,7 +152,6 @@
   </div>
 
   <div class="footer">
-    Güncelleme görünmüyorsa Ctrl+F5 yapın veya Service Worker cache temizleyin.
     <br><br>
     *Bu hesaplama sadece Pernod Ricard satış ekiplerinin kullanımına özgüdür ve sadece hesaplama kolaylığı sağlamak amacıyla satış ekiplerinin kullanımı için planlanmıştır.
     <br>
